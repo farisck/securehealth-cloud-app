@@ -81,6 +81,57 @@ You'll be asked to sign in (Entra ID auth is on) — sign in with
 Try adding a patient, then click into their name to add a diagnosis,
 medication, and note.
 
+## v2 upgrade — RBAC, audit log, edit, search (this version)
+
+This version adds real role-based access control, an audit trail, patient
+editing, more patient fields, and search/sort/pagination. Two things must be
+done **before** this will work — one in Entra ID, one on the database.
+
+### 1. Register the "clinician" role in Entra ID
+
+Only users with this role can add/edit/delete anything — everyone else gets
+read-only access automatically (fails closed, so no role = no write access,
+never the other way around).
+
+1. Go to **Microsoft Entra ID** → **App registrations**.
+2. Find the app registration tied to `app-securehealth-faris` (it was created
+   automatically when you turned on Easy Auth — look for a name matching your
+   app, or check under **Enterprise applications** → your app → **Properties**
+   for a link to its registration).
+3. In that App Registration, go to **App roles** → **Create app role**.
+4. Fill in:
+   - **Display name**: `Clinician`
+   - **Allowed member types**: Users/Groups
+   - **Value**: `clinician` (must be exactly this, lowercase — the code checks for it)
+   - **Description**: "Can add, edit, and delete patient records"
+5. Save.
+6. Go to **Enterprise applications** → find the same app → **Users and groups**.
+7. Click **Add user/group**, select `broboogy@gmail.com`, select the **Clinician**
+   role, and assign.
+
+Without this step, you'll be able to view patients but every Add/Edit/Delete
+button will give a 403 Forbidden page — that's the RBAC working correctly,
+just needing your account assigned to the role.
+
+### 2. Run the database migration
+
+New columns and a rename of a few existing ones are needed —
+`migration_v2.sql` handles this. Run it the same way as `schema.sql`: via a
+temporary jumpbox connected with `sqlcmd --authentication-method
+ActiveDirectoryManagedIdentity`. **Run this before deploying the new code** —
+the old app.py still works fine against the old schema, but the new app.py
+will error on every page until this migration runs.
+
+```bash
+sqlcmd -S sql-securehealth-faris.database.windows.net -d sqldb-patientrecords \
+  --authentication-method ActiveDirectoryManagedIdentity -i migration_v2.sql
+```
+
+### 3. Deploy as usual
+
+Same zip-deploy (or git clone + zip) process as before. No new Application
+Settings are needed.
+
 ## What's still not included (on purpose, for now)
 
 - Editing existing patient details or records (only add / remove for now)

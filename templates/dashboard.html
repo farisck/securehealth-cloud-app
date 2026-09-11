@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — SecureHealth Cloud{% endblock %}
+
+{% block breadcrumb %}
+<span>Dashboard</span>
+{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div class="welcome-banner">
+  <h1>Welcome back, {{ current_user_name.split('@')[0] | capitalize }}</h1>
+  <p>Here's an overview of your patient records system.</p>
+  <div class="welcome-date">
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px;opacity:0.6;">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    {{ today }}
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value">{{ stats.total_patients }}</div>
+      <div class="stat-label">Total Patients</div>
+      {% if stats.new_this_week > 0 %}
+      <div class="stat-change up">+{{ stats.new_this_week }} this week</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon brass">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value">{{ stats.active_diagnoses }}</div>
+      <div class="stat-label">Active Diagnoses</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon blue">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value">{{ stats.total_medications }}</div>
+      <div class="stat-label">Active Medications</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon red">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value">{{ stats.total_notes }}</div>
+      <div class="stat-label">Clinical Notes</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Grid: Recent Activity + Quick Actions -->
+<div style="display:grid; grid-template-columns:1fr 320px; gap:1.25rem; align-items:start;">
+
+  <!-- Recent Activity -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Recent Activity</h3>
+      <a href="{{ url_for('audit_log') }}" class="btn btn-ghost btn-sm">View All →</a>
+    </div>
+    <div class="card-body" style="padding:0;">
+      {% if recent_activity %}
+      <ul class="activity-feed" style="padding:0 1.25rem;">
+        {% for entry in recent_activity %}
+        <li class="activity-item">
+          <div class="activity-icon {{ entry.action | lower }}">
+            {% if entry.action == 'VIEW' %}
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            {% elif entry.action == 'CREATE' %}
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            {% elif entry.action == 'UPDATE' %}
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            {% elif entry.action == 'DELETE' %}
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            {% endif %}
+          </div>
+          <div style="flex:1;">
+            <div class="activity-text">
+              <span class="activity-actor">{{ entry.actor.split('@')[0] }}</span>
+              {{ entry.action | lower }}d
+              <span style="color:var(--color-accent);">{{ entry.entity_type }}</span>
+              {% if entry.details %}
+              <span class="text-muted">— {{ entry.details[:60] }}{% if entry.details|length > 60 %}…{% endif %}</span>
+              {% endif %}
+            </div>
+            <div class="activity-time">{{ entry.timestamp.strftime('%b %d, %H:%M') if entry.timestamp else '' }}</div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="empty-state" style="padding:2rem;">
+        <p>No recent activity yet.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div>
+    <h3 style="font-size:0.95rem; margin-bottom:0.75rem; color:var(--color-heading);">Quick Actions</h3>
+    <div class="quick-actions" style="grid-template-columns:1fr;">
+      {% if is_clinician %}
+      <a href="{{ url_for('add_patient') }}" class="quick-action">
+        <div class="quick-action-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+          </svg>
+        </div>
+        <div class="quick-action-text">Add Patient</div>
+      </a>
+      {% endif %}
+      <a href="{{ url_for('patients') }}" class="quick-action">
+        <div class="quick-action-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </div>
+        <div class="quick-action-text">Search Patients</div>
+      </a>
+      <a href="{{ url_for('audit_log') }}" class="quick-action">
+        <div class="quick-action-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <div class="quick-action-text">View Audit Log</div>
+      </a>
+    </div>
+
+    <!-- Security Status Card -->
+    <div class="card mt-2">
+      <div class="card-header">
+        <h3 style="font-size:0.85rem;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px;">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Security Status
+        </h3>
+      </div>
+      <div class="card-body" style="padding:0.85rem 1.25rem;">
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+          <div class="d-flex align-center justify-between">
+            <span class="text-small text-muted">Authentication</span>
+            <span class="badge badge-green badge-dot">Entra ID</span>
+          </div>
+          <div class="d-flex align-center justify-between">
+            <span class="text-small text-muted">Authorization</span>
+            <span class="badge badge-green badge-dot">RBAC Active</span>
+          </div>
+          <div class="d-flex align-center justify-between">
+            <span class="text-small text-muted">Encryption</span>
+            <span class="badge badge-green badge-dot">TDE + TLS 1.2</span>
+          </div>
+          <div class="d-flex align-center justify-between">
+            <span class="text-small text-muted">Audit Trail</span>
+            <span class="badge badge-green badge-dot">Enabled</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

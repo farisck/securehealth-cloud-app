@@ -1,38 +1,193 @@
 {% extends "base.html" %}
+
 {% block title %}Patients — SecureHealth Cloud{% endblock %}
 
+{% block breadcrumb %}
+<a href="{{ url_for('dashboard') }}">Dashboard</a>
+<span class="separator">/</span>
+<span>Patients</span>
+{% endblock %}
+
 {% block content %}
-  <div class="page-header">
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
     <h1>Patients</h1>
-    <a href="{{ url_for('add_patient') }}" class="btn btn-primary">Add patient</a>
+    <p>Manage and view patient records</p>
+  </div>
+  <div class="page-header-actions">
+    {% if is_clinician %}
+    <a href="{{ url_for('add_patient') }}" class="btn btn-primary" id="btn-add-patient">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Add Patient
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <div class="search-input-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <form method="GET" action="{{ url_for('patients') }}" style="display:contents;" id="filter-form">
+      <input type="text" name="q" class="form-input" placeholder="Search by name…" value="{{ search_query or '' }}" id="patient-search-input">
   </div>
 
-  {% if patients %}
-    <table class="patients-table">
+  <select name="gender" class="form-select" onchange="this.form.submit()" id="filter-gender">
+    <option value="">All Genders</option>
+    <option value="Male" {% if gender_filter == 'Male' %}selected{% endif %}>Male</option>
+    <option value="Female" {% if gender_filter == 'Female' %}selected{% endif %}>Female</option>
+    <option value="Other" {% if gender_filter == 'Other' %}selected{% endif %}>Other</option>
+  </select>
+
+  <select name="sort" class="form-select" onchange="this.form.submit()" id="filter-sort">
+    <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A–Z)</option>
+    <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z–A)</option>
+    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+    <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+  </select>
+
+  {% if search_query or gender_filter %}
+  <a href="{{ url_for('patients') }}" class="btn btn-ghost btn-sm">Clear Filters</a>
+  {% endif %}
+  </form>
+
+  <span class="filter-count">
+    {{ total_patients }} patient{{ 's' if total_patients != 1 else '' }}
+  </span>
+</div>
+
+<!-- Patient Table -->
+<div class="card">
+  <div class="table-wrapper">
+    {% if patients %}
+    <table class="data-table" id="patients-table">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Date of birth</th>
-          <th>Record added</th>
+          <th class="sortable">Patient</th>
+          <th class="sortable">ID Number</th>
+          <th class="sortable">Date of Birth</th>
+          <th class="sortable">Gender</th>
+          <th>Diagnoses</th>
+          <th class="text-right">Actions</th>
         </tr>
       </thead>
       <tbody>
-        {% for p in patients %}
+        {% for patient in patients %}
         <tr>
           <td>
-            <a class="row-link" href="{{ url_for('patient_detail', patient_id=p.patient_id) }}">
-              {{ p.last_name }}, {{ p.first_name }}
-            </a>
+            <div class="table-patient-name">
+              <div class="avatar avatar-sm avatar-{{ (patient.id % 6) + 1 }}">
+                {{ patient.first_name[0] }}{{ patient.last_name[0] }}
+              </div>
+              <div>
+                <a href="{{ url_for('view_patient', patient_id=patient.id) }}">
+                  {{ patient.last_name }}, {{ patient.first_name }}
+                </a>
+                {% if patient.email %}
+                <div class="text-xs text-muted">{{ patient.email }}</div>
+                {% endif %}
+              </div>
+            </div>
           </td>
-          <td>{{ p.date_of_birth.strftime('%d %b %Y') }}</td>
-          <td>{{ p.created_at.strftime('%d %b %Y') }}</td>
+          <td>
+            <span class="text-small" style="font-variant-numeric:tabular-nums;">{{ patient.id_number or '—' }}</span>
+          </td>
+          <td>
+            <span class="text-small">{{ patient.date_of_birth.strftime('%d %b %Y') if patient.date_of_birth else '—' }}</span>
+          </td>
+          <td>
+            <span class="badge {% if patient.gender == 'Male' %}badge-blue{% elif patient.gender == 'Female' %}badge-brass{% else %}badge-gray{% endif %}">
+              {{ patient.gender or '—' }}
+            </span>
+          </td>
+          <td>
+            {% if patient.diagnosis_count %}
+            <span class="badge badge-green badge-dot">{{ patient.diagnosis_count }} active</span>
+            {% else %}
+            <span class="text-muted text-xs">None</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{{ url_for('view_patient', patient_id=patient.id) }}" class="btn btn-ghost btn-sm btn-icon" title="View">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </a>
+              {% if is_clinician %}
+              <a href="{{ url_for('edit_patient', patient_id=patient.id) }}" class="btn btn-ghost btn-sm btn-icon" title="Edit">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </a>
+              {% endif %}
+            </div>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-  {% else %}
+    {% else %}
     <div class="empty-state">
-      No patients yet. <a href="{{ url_for('add_patient') }}">Add the first patient</a> to get started.
+      <div class="empty-state-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <h3>No patients found</h3>
+      <p>
+        {% if search_query %}
+          No patients match "<strong>{{ search_query }}</strong>". Try a different search term.
+        {% else %}
+          Get started by adding your first patient record.
+        {% endif %}
+      </p>
+      {% if is_clinician and not search_query %}
+      <a href="{{ url_for('add_patient') }}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add First Patient
+      </a>
+      {% endif %}
     </div>
+    {% endif %}
+  </div>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <div class="card-footer">
+    <div class="pagination">
+      <a href="{{ url_for('patients', page=current_page-1, q=search_query, gender=gender_filter, sort=sort_by) }}"
+         class="pagination-btn {% if current_page <= 1 %}disabled{% endif %}">
+        ← Prev
+      </a>
+
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == current_page %}
+          <span class="pagination-btn active">{{ p }}</span>
+        {% elif p == 1 or p == total_pages or (p >= current_page - 2 and p <= current_page + 2) %}
+          <a href="{{ url_for('patients', page=p, q=search_query, gender=gender_filter, sort=sort_by) }}" class="pagination-btn">{{ p }}</a>
+        {% elif p == current_page - 3 or p == current_page + 3 %}
+          <span class="pagination-btn disabled">…</span>
+        {% endif %}
+      {% endfor %}
+
+      <a href="{{ url_for('patients', page=current_page+1, q=search_query, gender=gender_filter, sort=sort_by) }}"
+         class="pagination-btn {% if current_page >= total_pages %}disabled{% endif %}">
+        Next →
+      </a>
+
+      <span class="pagination-info">
+        Page {{ current_page }} of {{ total_pages }}
+      </span>
+    </div>
+  </div>
   {% endif %}
+</div>
 {% endblock %}

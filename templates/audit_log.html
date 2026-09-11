@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Log — SecureHealth Cloud{% endblock %}
+
+{% block breadcrumb %}
+<a href="{{ url_for('dashboard') }}">Dashboard</a>
+<span class="separator">/</span>
+<span>Audit Log</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Audit Log</h1>
+    <p>Complete record of all system activity</p>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <form method="GET" action="{{ url_for('audit_log') }}" style="display:contents;" id="audit-filter-form">
+    <div class="search-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" name="q" class="form-input" placeholder="Search by actor or details…"
+             value="{{ search_query or '' }}" id="audit-search-input">
+    </div>
+
+    <select name="action" class="form-select" onchange="this.form.submit()" id="filter-action">
+      <option value="">All Actions</option>
+      {% for a in ['VIEW', 'CREATE', 'UPDATE', 'DELETE'] %}
+      <option value="{{ a }}" {% if action_filter == a %}selected{% endif %}>{{ a }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="entity" class="form-select" onchange="this.form.submit()" id="filter-entity">
+      <option value="">All Entities</option>
+      {% for e in ['patient', 'diagnosis', 'medication', 'note'] %}
+      <option value="{{ e }}" {% if entity_filter == e %}selected{% endif %}>{{ e | capitalize }}</option>
+      {% endfor %}
+    </select>
+
+    {% if search_query or action_filter or entity_filter %}
+    <a href="{{ url_for('audit_log') }}" class="btn btn-ghost btn-sm">Clear</a>
+    {% endif %}
+  </form>
+
+  <span class="filter-count">{{ total_entries }} entr{{ 'ies' if total_entries != 1 else 'y' }}</span>
+</div>
+
+<!-- Audit Table -->
+<div class="card">
+  <div class="table-wrapper">
+    {% if entries %}
+    <table class="data-table" id="audit-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Actor</th>
+          <th>Action</th>
+          <th>Entity</th>
+          <th>Entity ID</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr>
+          <td>
+            <span class="text-small" style="font-variant-numeric:tabular-nums;">
+              {{ entry.timestamp.strftime('%d %b %Y, %H:%M:%S') if entry.timestamp else '—' }}
+            </span>
+          </td>
+          <td>
+            <div class="d-flex align-center gap-1">
+              <div class="avatar avatar-sm avatar-{{ (loop.index % 6) + 1 }}">
+                {{ entry.actor[:2] | upper if entry.actor else '??' }}
+              </div>
+              <span class="text-small">{{ entry.actor.split('@')[0] if entry.actor else 'Unknown' }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="badge {% if entry.action == 'CREATE' %}badge-green{% elif entry.action == 'UPDATE' %}badge-yellow{% elif entry.action == 'DELETE' %}badge-red{% elif entry.action == 'VIEW' %}badge-blue{% else %}badge-gray{% endif %}">
+              {{ entry.action }}
+            </span>
+          </td>
+          <td class="text-small" style="text-transform:capitalize;">{{ entry.entity_type }}</td>
+          <td>
+            {% if entry.entity_type == 'patient' and entry.action != 'DELETE' %}
+            <a href="{{ url_for('view_patient', patient_id=entry.entity_id) }}" class="text-small">#{{ entry.entity_id }}</a>
+            {% else %}
+            <span class="text-small text-muted">#{{ entry.entity_id }}</span>
+            {% endif %}
+          </td>
+          <td class="text-small text-muted">
+            {{ entry.details[:80] if entry.details else '—' }}{% if entry.details and entry.details|length > 80 %}…{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <h3>No audit entries found</h3>
+      <p>
+        {% if search_query or action_filter or entity_filter %}
+          No entries match your filters. Try adjusting your search.
+        {% else %}
+          The audit log is empty. Activity will be recorded as users interact with the system.
+        {% endif %}
+      </p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <div class="card-footer">
+    <div class="pagination">
+      <a href="{{ url_for('audit_log', page=current_page-1, q=search_query, action=action_filter, entity=entity_filter) }}"
+         class="pagination-btn {% if current_page <= 1 %}disabled{% endif %}">
+        ← Prev
+      </a>
+
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == current_page %}
+          <span class="pagination-btn active">{{ p }}</span>
+        {% elif p == 1 or p == total_pages or (p >= current_page - 2 and p <= current_page + 2) %}
+          <a href="{{ url_for('audit_log', page=p, q=search_query, action=action_filter, entity=entity_filter) }}"
+             class="pagination-btn">{{ p }}</a>
+        {% elif p == current_page - 3 or p == current_page + 3 %}
+          <span class="pagination-btn disabled">…</span>
+        {% endif %}
+      {% endfor %}
+
+      <a href="{{ url_for('audit_log', page=current_page+1, q=search_query, action=action_filter, entity=entity_filter) }}"
+         class="pagination-btn {% if current_page >= total_pages %}disabled{% endif %}">
+        Next →
+      </a>
+
+      <span class="pagination-info">
+        Page {{ current_page }} of {{ total_pages }}
+      </span>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,40 +1,124 @@
 {% extends "base.html" %}
-{% block title %}Add patient — SecureHealth Cloud{% endblock %}
+
+{% block title %}{{ 'Edit' if patient else 'Add' }} Patient — SecureHealth Cloud{% endblock %}
+
+{% block breadcrumb %}
+<a href="{{ url_for('dashboard') }}">Dashboard</a>
+<span class="separator">/</span>
+<a href="{{ url_for('patients') }}">Patients</a>
+<span class="separator">/</span>
+{% if patient %}
+<a href="{{ url_for('view_patient', patient_id=patient.id) }}">{{ patient.last_name }}, {{ patient.first_name }}</a>
+<span class="separator">/</span>
+<span>Edit</span>
+{% else %}
+<span>Add New Patient</span>
+{% endif %}
+{% endblock %}
 
 {% block content %}
-  <a class="back-link" href="{{ url_for('patients_list') }}">&larr; Back to patients</a>
-  <h1>Add a patient</h1>
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>{{ 'Edit Patient' if patient else 'Add New Patient' }}</h1>
+    <p>{{ 'Update patient demographics and contact information.' if patient else 'Enter the patient\'s personal and contact details.' }}</p>
+  </div>
+</div>
 
-  <div class="form-card">
-    <form method="POST">
-      <div class="field">
-        <label for="first_name">First name</label>
-        <input type="text" id="first_name" name="first_name" required>
+<div class="card" style="max-width:720px;">
+  <div class="card-body" style="padding:1.75rem;">
+    <form method="POST"
+          action="{{ url_for('edit_patient', patient_id=patient.id) if patient else url_for('add_patient') }}"
+          data-validate
+          id="patient-form">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="first_name">
+            First Name <span class="required">*</span>
+          </label>
+          <input type="text" name="first_name" id="first_name" class="form-input"
+                 value="{{ patient.first_name if patient else '' }}" required
+                 placeholder="e.g. John">
+          <div class="form-error" style="display:none;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            First name is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="last_name">
+            Last Name <span class="required">*</span>
+          </label>
+          <input type="text" name="last_name" id="last_name" class="form-input"
+                 value="{{ patient.last_name if patient else '' }}" required
+                 placeholder="e.g. Doe">
+          <div class="form-error" style="display:none;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Last name is required
+          </div>
+        </div>
       </div>
-      <div class="field">
-        <label for="last_name">Last name</label>
-        <input type="text" id="last_name" name="last_name" required>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="id_number">ID Number</label>
+          <input type="text" name="id_number" id="id_number" class="form-input"
+                 value="{{ patient.id_number if patient else '' }}"
+                 placeholder="e.g. 9901015800083">
+          <div class="form-hint">National ID or passport number</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="date_of_birth">Date of Birth</label>
+          <input type="date" name="date_of_birth" id="date_of_birth" class="form-input"
+                 value="{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient and patient.date_of_birth else '' }}">
+        </div>
       </div>
-      <div class="field">
-        <label for="date_of_birth">Date of birth</label>
-        <input type="date" id="date_of_birth" name="date_of_birth" required>
+
+      <div class="form-group">
+        <label class="form-label" for="gender">Gender</label>
+        <select name="gender" id="gender" class="form-select">
+          <option value="">Select gender…</option>
+          <option value="Male" {% if patient and patient.gender == 'Male' %}selected{% endif %}>Male</option>
+          <option value="Female" {% if patient and patient.gender == 'Female' %}selected{% endif %}>Female</option>
+          <option value="Other" {% if patient and patient.gender == 'Other' %}selected{% endif %}>Other</option>
+        </select>
       </div>
-      <div class="field">
-        <label for="phone">Phone</label>
-        <input type="text" id="phone" name="phone">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input type="email" name="email" id="email" class="form-input"
+                 value="{{ patient.email if patient else '' }}"
+                 placeholder="e.g. john.doe@email.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="phone">Phone</label>
+          <input type="tel" name="phone" id="phone" class="form-input"
+                 value="{{ patient.phone if patient else '' }}"
+                 placeholder="e.g. +27 82 123 4567">
+        </div>
       </div>
-      <div class="field">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email">
+
+      <div class="form-group">
+        <label class="form-label" for="address">Address</label>
+        <textarea name="address" id="address" class="form-textarea" rows="3"
+                  placeholder="Full address…">{{ patient.address if patient else '' }}</textarea>
       </div>
-      <div class="field">
-        <label for="address">Address</label>
-        <textarea id="address" name="address"></textarea>
-      </div>
+
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Save patient</button>
-        <a href="{{ url_for('patients_list') }}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary" id="btn-save-patient">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+          </svg>
+          {{ 'Update Patient' if patient else 'Save Patient' }}
+        </button>
+        <a href="{{ url_for('view_patient', patient_id=patient.id) if patient else url_for('patients') }}" class="btn btn-secondary">
+          Cancel
+        </a>
       </div>
     </form>
   </div>
+</div>
 {% endblock %}

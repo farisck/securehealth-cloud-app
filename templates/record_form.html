@@ -1,91 +1,174 @@
 {% extends "base.html" %}
-{% block title %}Add {{ record_type }} — SecureHealth Cloud{% endblock %}
+
+{# Generic form for adding/editing Diagnoses, Medications, and Clinical Notes.
+   Pass `record_type` = "diagnosis" | "medication" | "note" from the route. #}
+
+{% set type_labels = {
+  'diagnosis': 'Diagnosis',
+  'medication': 'Medication',
+  'note': 'Clinical Note'
+} %}
+{% set label = type_labels.get(record_type, 'Record') %}
+
+{% block title %}{{ 'Edit' if record else 'Add' }} {{ label }} — SecureHealth Cloud{% endblock %}
+
+{% block breadcrumb %}
+<a href="{{ url_for('dashboard') }}">Dashboard</a>
+<span class="separator">/</span>
+<a href="{{ url_for('patients') }}">Patients</a>
+<span class="separator">/</span>
+<a href="{{ url_for('view_patient', patient_id=patient_id) }}">Patient #{{ patient_id }}</a>
+<span class="separator">/</span>
+<span>{{ 'Edit' if record else 'Add' }} {{ label }}</span>
+{% endblock %}
 
 {% block content %}
-  <a class="back-link" href="{{ url_for('patient_detail', patient_id=patient_id) }}">&larr; Back to patient</a>
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>{{ 'Edit' if record else 'Add' }} {{ label }}</h1>
+    <p>{{ 'Update the details below.' if record else 'Fill in the details to create a new ' + label|lower + '.' }}</p>
+  </div>
+</div>
 
-  {% if record_type == 'diagnosis' %}
-    <h1>Add diagnosis</h1>
-    <div class="form-card">
-      <form method="POST">
-        <div class="field">
-          <label for="condition_name">Condition</label>
-          <input type="text" id="condition_name" name="condition_name" required>
+<div class="card" style="max-width:640px;">
+  <div class="card-body" style="padding:1.75rem;">
+    <form method="POST" data-validate id="record-form">
+
+      {% if record_type == 'diagnosis' %}
+      <!-- ── Diagnosis Fields ───────────────────────────────── -->
+      <div class="form-group">
+        <label class="form-label" for="diagnosis">
+          Diagnosis <span class="required">*</span>
+        </label>
+        <input type="text" name="diagnosis" id="diagnosis" class="form-input" required
+               value="{{ record.diagnosis if record else '' }}"
+               placeholder="e.g. Type 2 Diabetes Mellitus">
+        <div class="form-error" style="display:none;">Diagnosis name is required</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="diagnosed_date">Date Diagnosed</label>
+          <input type="date" name="diagnosed_date" id="diagnosed_date" class="form-input"
+                 value="{{ record.diagnosed_date.strftime('%Y-%m-%d') if record and record.diagnosed_date else '' }}">
         </div>
-        <div class="field">
-          <label for="diagnosed_date">Date diagnosed</label>
-          <input type="date" id="diagnosed_date" name="diagnosed_date" required>
-        </div>
-        <div class="field">
-          <label for="status">Status</label>
-          <select id="status" name="status">
-            <option value="active">Active</option>
-            <option value="resolved">Resolved</option>
+
+        <div class="form-group">
+          <label class="form-label" for="severity">Severity</label>
+          <select name="severity" id="severity" class="form-select">
+            <option value="">Select…</option>
+            {% for s in ['Low', 'Medium', 'High', 'Critical'] %}
+            <option value="{{ s }}" {% if record and record.severity == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
           </select>
         </div>
-        <div class="field">
-          <label for="notes">Notes</label>
-          <textarea id="notes" name="notes"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Save diagnosis</button>
-          <a href="{{ url_for('patient_detail', patient_id=patient_id) }}" class="btn btn-ghost">Cancel</a>
-        </div>
-      </form>
-    </div>
+      </div>
 
-  {% elif record_type == 'medication' %}
-    <h1>Add medication</h1>
-    <div class="form-card">
-      <form method="POST">
-        <div class="field">
-          <label for="medication_name">Medication</label>
-          <input type="text" id="medication_name" name="medication_name" required>
-        </div>
-        <div class="field">
-          <label for="dosage">Dosage</label>
-          <input type="text" id="dosage" name="dosage" placeholder="e.g. 500mg">
-        </div>
-        <div class="field">
-          <label for="frequency">Frequency</label>
-          <input type="text" id="frequency" name="frequency" placeholder="e.g. Twice daily">
-        </div>
-        <div class="field">
-          <label for="start_date">Start date</label>
-          <input type="date" id="start_date" name="start_date">
-        </div>
-        <div class="field">
-          <label for="end_date">End date (optional)</label>
-          <input type="date" id="end_date" name="end_date">
-        </div>
-        <div class="field">
-          <label for="prescribing_clinician">Prescribing clinician</label>
-          <input type="text" id="prescribing_clinician" name="prescribing_clinician">
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Save medication</button>
-          <a href="{{ url_for('patient_detail', patient_id=patient_id) }}" class="btn btn-ghost">Cancel</a>
-        </div>
-      </form>
-    </div>
+      <div class="form-group">
+        <label class="form-label" for="status">Status</label>
+        <select name="status" id="status" class="form-select">
+          <option value="Active" {% if record and record.status == 'Active' %}selected{% endif %}>Active</option>
+          <option value="Resolved" {% if record and record.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+          <option value="Chronic" {% if record and record.status == 'Chronic' %}selected{% endif %}>Chronic</option>
+        </select>
+      </div>
 
-  {% elif record_type == 'note' %}
-    <h1>Add clinical note</h1>
-    <div class="form-card">
-      <form method="POST">
-        <div class="field">
-          <label for="note_text">Note</label>
-          <textarea id="note_text" name="note_text" required style="min-height: 140px;"></textarea>
+      <div class="form-group">
+        <label class="form-label" for="notes">Notes</label>
+        <textarea name="notes" id="notes" class="form-textarea" rows="3"
+                  placeholder="Additional clinical notes…">{{ record.notes if record else '' }}</textarea>
+      </div>
+
+      {% elif record_type == 'medication' %}
+      <!-- ── Medication Fields ──────────────────────────────── -->
+      <div class="form-group">
+        <label class="form-label" for="medication_name">
+          Medication Name <span class="required">*</span>
+        </label>
+        <input type="text" name="medication_name" id="medication_name" class="form-input" required
+               value="{{ record.medication_name if record else '' }}"
+               placeholder="e.g. Metformin">
+        <div class="form-error" style="display:none;">Medication name is required</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="dosage">Dosage</label>
+          <input type="text" name="dosage" id="dosage" class="form-input"
+                 value="{{ record.dosage if record else '' }}"
+                 placeholder="e.g. 500mg">
         </div>
-        <div class="field">
-          <label for="created_by">Your name</label>
-          <input type="text" id="created_by" name="created_by">
+
+        <div class="form-group">
+          <label class="form-label" for="frequency">Frequency</label>
+          <input type="text" name="frequency" id="frequency" class="form-input"
+                 value="{{ record.frequency if record else '' }}"
+                 placeholder="e.g. Twice daily">
         </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Save note</button>
-          <a href="{{ url_for('patient_detail', patient_id=patient_id) }}" class="btn btn-ghost">Cancel</a>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="prescriber">Prescriber</label>
+        <input type="text" name="prescriber" id="prescriber" class="form-input"
+               value="{{ record.prescriber if record else '' }}"
+               placeholder="e.g. Dr. Smith">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="start_date">Start Date</label>
+          <input type="date" name="start_date" id="start_date" class="form-input"
+                 value="{{ record.start_date.strftime('%Y-%m-%d') if record and record.start_date else '' }}">
         </div>
-      </form>
-    </div>
-  {% endif %}
+
+        <div class="form-group">
+          <label class="form-label" for="end_date">End Date</label>
+          <input type="date" name="end_date" id="end_date" class="form-input"
+                 value="{{ record.end_date.strftime('%Y-%m-%d') if record and record.end_date else '' }}">
+          <div class="form-hint">Leave blank if medication is ongoing</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="notes">Notes</label>
+        <textarea name="notes" id="notes" class="form-textarea" rows="3"
+                  placeholder="Additional notes…">{{ record.notes if record else '' }}</textarea>
+      </div>
+
+      {% elif record_type == 'note' %}
+      <!-- ── Clinical Note Fields ───────────────────────────── -->
+      <div class="form-group">
+        <label class="form-label" for="note_type">Note Type</label>
+        <select name="note_type" id="note_type" class="form-select">
+          <option value="">Select type…</option>
+          {% for t in ['Progress Note', 'Initial Assessment', 'Follow-up', 'Discharge Summary', 'Consultation', 'Other'] %}
+          <option value="{{ t }}" {% if record and record.note_type == t %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="content">
+          Content <span class="required">*</span>
+        </label>
+        <textarea name="content" id="content" class="form-textarea" rows="8" required
+                  placeholder="Enter clinical notes…">{{ record.content if record else '' }}</textarea>
+        <div class="form-error" style="display:none;">Note content is required</div>
+      </div>
+      {% endif %}
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="btn-save-record">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+          </svg>
+          {{ 'Update' if record else 'Save' }} {{ label }}
+        </button>
+        <a href="{{ url_for('view_patient', patient_id=patient_id) }}" class="btn btn-secondary">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}

@@ -1,0 +1,76 @@
+<!-- templates/403.html
+     Forbidden page — matches SecureHealth pine-green / brass / Inter aesthetic.
+     Extends your existing base.html layout. -->
+{% extends "base.html" %}
+
+{% block title %}Access Denied — SecureHealth{% endblock %}
+
+{% block content %}
+<div class="error-container" style="
+    max-width: 520px;
+    margin: 6rem auto;
+    text-align: center;
+    padding: 2.5rem 2rem;
+">
+    <!-- Lock icon -->
+    <div style="
+        width: 72px; height: 72px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background: var(--color-danger-bg, #fef2f2);
+        display: flex; align-items: center; justify-content: center;
+    ">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+             viewBox="0 0 24 24" fill="none"
+             stroke="var(--color-danger, #b91c1c)" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+    </div>
+
+    <h1 style="
+        font-family: var(--font-display, 'DM Serif Display', serif);
+        font-size: 1.75rem;
+        color: var(--color-heading, #1a2e1a);
+        margin-bottom: 0.75rem;
+    ">Access Denied</h1>
+
+    <p style="
+        font-family: var(--font-body, 'Inter', sans-serif);
+        color: var(--color-text-secondary, #6b7280);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    ">
+        You don't have permission to perform this action.
+        Your account (<strong>{{ current_user_name }}</strong>) does not hold
+        the required role. If you believe this is an error, contact your
+        administrator.
+    </p>
+
+    <p style="
+        font-size: 0.8rem;
+        color: var(--color-text-tertiary, #9ca3af);
+        margin-bottom: 1.5rem;
+    ">
+        This attempt has been recorded in the audit log.
+    </p>
+
+    <a href="{{ url_for('patients') }}" style="
+        display: inline-block;
+        padding: 0.6rem 1.5rem;
+        background: var(--color-primary, #2d5a3d);
+        color: #fff;
+        border-radius: 6px;
+        text-decoration: none;
+        font-family: var(--font-body, 'Inter', sans-serif);
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: background 0.2s ease;
+    " onmouseover="this.style.background='var(--color-primary-hover, #3a7550)'"
+       onmouseout="this.style.background='var(--color-primary, #2d5a3d)'">
+        ← Back to Patients
+    </a>
+</div>
+{% endblock %}
