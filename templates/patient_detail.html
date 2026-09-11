@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}{{ patient.first_name }} {{ patient.last_name }} — SecureHealth Cloud{% endblock %}
+
+{% block content %}
+  <a class="back-link" href="{{ url_for('patients_list') }}">&larr; Back to patients</a>
+
+  <div class="page-header">
+    <h1>{{ patient.first_name }} {{ patient.last_name }}</h1>
+    <form method="POST" action="{{ url_for('delete_patient', patient_id=patient.patient_id) }}"
+          onsubmit="return confirm('Remove this patient and all their records? This cannot be undone.');">
+      <button type="submit" class="btn-danger">Delete patient</button>
+    </form>
+  </div>
+
+  <div class="detail-grid">
+    <div class="info-card">
+      <div class="age-highlight">{{ age }}</div>
+      <div class="age-label">years old</div>
+      <dl>
+        <dt>Date of birth</dt>
+        <dd>{{ patient.date_of_birth.strftime('%d %b %Y') }}</dd>
+        <dt>Phone</dt>
+        <dd>{{ patient.phone or '—' }}</dd>
+        <dt>Email</dt>
+        <dd>{{ patient.email or '—' }}</dd>
+        <dt>Address</dt>
+        <dd>{{ patient.address or '—' }}</dd>
+      </dl>
+    </div>
+
+    <div>
+      <!-- Diagnoses -->
+      <div class="record-section">
+        <div class="section-header">
+          <h2>Diagnoses</h2>
+          <a class="btn btn-ghost" href="{{ url_for('add_diagnosis', patient_id=patient.patient_id) }}">Add diagnosis</a>
+        </div>
+        {% if diagnoses %}
+          {% for d in diagnoses %}
+          <div class="record-item diagnosis">
+            <div class="record-main">
+              <div class="record-title">
+                {{ d.condition_name }}
+                <span class="status-pill {{ d.status }}">{{ d.status }}</span>
+              </div>
+              <div class="record-meta">Diagnosed {{ d.diagnosed_date.strftime('%d %b %Y') }}</div>
+              {% if d.notes %}<div class="record-notes">{{ d.notes }}</div>{% endif %}
+            </div>
+            <form method="POST" action="{{ url_for('delete_diagnosis', diagnosis_id=d.diagnosis_id) }}"
+                  onsubmit="return confirm('Remove this diagnosis?');">
+              <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+              <button type="submit" class="btn-danger">Remove</button>
+            </form>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">No diagnoses on record.</div>
+        {% endif %}
+      </div>
+
+      <!-- Medications -->
+      <div class="record-section">
+        <div class="section-header">
+          <h2>Medications</h2>
+          <a class="btn btn-ghost" href="{{ url_for('add_medication', patient_id=patient.patient_id) }}">Add medication</a>
+        </div>
+        {% if medications %}
+          {% for m in medications %}
+          <div class="record-item medication">
+            <div class="record-main">
+              <div class="record-title">{{ m.medication_name }}{% if m.dosage %} — {{ m.dosage }}{% endif %}</div>
+              <div class="record-meta">
+                {{ m.frequency or '' }}
+                {% if m.start_date %} · started {{ m.start_date.strftime('%d %b %Y') }}{% endif %}
+                {% if m.prescribing_clinician %} · prescribed by {{ m.prescribing_clinician }}{% endif %}
+              </div>
+            </div>
+            <form method="POST" action="{{ url_for('delete_medication', medication_id=m.medication_id) }}"
+                  onsubmit="return confirm('Remove this medication?');">
+              <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+              <button type="submit" class="btn-danger">Remove</button>
+            </form>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">No medications on record.</div>
+        {% endif %}
+      </div>
+
+      <!-- Notes -->
+      <div class="record-section">
+        <div class="section-header">
+          <h2>Clinical notes</h2>
+          <a class="btn btn-ghost" href="{{ url_for('add_note', patient_id=patient.patient_id) }}">Add note</a>
+        </div>
+        {% if notes %}
+          {% for n in notes %}
+          <div class="record-item note">
+            <div class="record-main">
+              <div class="record-notes">{{ n.note_text }}</div>
+              <div class="record-meta">
+                {{ n.created_at.strftime('%d %b %Y, %H:%M') }}
+                {% if n.created_by %} · {{ n.created_by }}{% endif %}
+              </div>
+            </div>
+            <form method="POST" action="{{ url_for('delete_note', note_id=n.note_id) }}"
+                  onsubmit="return confirm('Remove this note?');">
+              <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+              <button type="submit" class="btn-danger">Remove</button>
+            </form>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">No notes on record.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

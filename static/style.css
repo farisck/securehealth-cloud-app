@@ -1,0 +1,289 @@
+:root {
+  --canvas: #F5F6F3;
+  --panel: #FFFFFF;
+  --ink: #20241F;
+  --ink-soft: #5B6259;
+  --pine: #1F4B43;
+  --pine-deep: #163530;
+  --pine-tint: #E7EEEB;
+  --brass: #B8935A;
+  --brass-tint: #F3E9D8;
+  --clay: #A63D2F;
+  --clay-tint: #F3E1DD;
+  --border: #E1E4DE;
+
+  --font-display: "Source Serif 4", Georgia, serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+a { color: var(--pine); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0 0 0.4em 0; color: var(--ink); }
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; }
+
+/* ---------- Layout ---------- */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--pine);
+  color: #EFF3F1;
+  padding: 28px 20px;
+}
+
+.sidebar .brand {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 32px;
+  color: #FFFFFF;
+}
+
+.sidebar nav a {
+  display: block;
+  color: #D9E4E0;
+  padding: 8px 0;
+  font-size: 0.95rem;
+}
+
+.sidebar nav a:hover,
+.sidebar nav a.active {
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.main {
+  flex: 1;
+  padding: 40px 48px;
+  max-width: 1100px;
+}
+
+.page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--pine);
+  color: #FFFFFF;
+}
+.btn-primary:hover { background: var(--pine-deep); text-decoration: none; }
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--ink);
+}
+.btn-ghost:hover { border-color: var(--pine); text-decoration: none; }
+
+.btn-danger {
+  background: transparent;
+  border: none;
+  color: var(--clay);
+  font-size: 0.82rem;
+  padding: 4px 0;
+}
+.btn-danger:hover { text-decoration: underline; }
+
+/* ---------- Flash messages ---------- */
+
+.flash {
+  background: var(--pine-tint);
+  border-left: 3px solid var(--pine);
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  border-radius: 2px;
+}
+
+/* ---------- Patients table ---------- */
+
+.patients-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.patients-table th {
+  text-align: left;
+  font-size: 0.78rem;
+  text-transform: none;
+  color: var(--ink-soft);
+  font-weight: 500;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.patients-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+
+.patients-table tr:hover td {
+  background: var(--pine-tint);
+}
+
+.patients-table a.row-link {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.empty-state {
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--ink-soft);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+}
+
+/* ---------- Patient detail ---------- */
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.info-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 24px;
+}
+
+.info-card .age-highlight {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  color: var(--brass);
+  line-height: 1;
+  margin: 4px 0 2px 0;
+}
+
+.info-card .age-label {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin-bottom: 18px;
+}
+
+.info-card dl { margin: 0; }
+.info-card dt { font-size: 0.72rem; color: var(--ink-soft); margin-top: 12px; }
+.info-card dd { margin: 2px 0 0 0; font-size: 0.9rem; }
+
+.record-section { margin-bottom: 36px; }
+
+.record-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.record-item {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.record-item.diagnosis { border-left-color: var(--clay); }
+.record-item.medication { border-left-color: var(--brass); }
+.record-item.note { border-left-color: var(--pine); }
+
+.record-item .record-main { flex: 1; }
+.record-item .record-title { font-weight: 600; font-size: 0.92rem; }
+.record-item .record-meta { font-size: 0.8rem; color: var(--ink-soft); margin-top: 2px; }
+.record-item .record-notes { font-size: 0.85rem; margin-top: 6px; color: var(--ink); }
+
+.status-pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+.status-pill.active { background: var(--clay-tint); color: var(--clay); }
+.status-pill.resolved { background: var(--pine-tint); color: var(--pine); }
+
+/* ---------- Forms ---------- */
+
+.form-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 32px;
+  max-width: 560px;
+}
+
+.field { margin-bottom: 18px; }
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin-bottom: 5px;
+}
+
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 9px 11px;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: 2px solid var(--pine);
+  outline-offset: 1px;
+  background: #FFFFFF;
+}
+
+.field textarea { min-height: 90px; resize: vertical; }
+
+.form-actions { margin-top: 24px; display: flex; gap: 10px; }
+
+.back-link { font-size: 0.85rem; margin-bottom: 18px; display: inline-block; }

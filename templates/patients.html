@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Patients — SecureHealth Cloud{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Patients</h1>
+    <a href="{{ url_for('add_patient') }}" class="btn btn-primary">Add patient</a>
+  </div>
+
+  {% if patients %}
+    <table class="patients-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Date of birth</th>
+          <th>Record added</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in patients %}
+        <tr>
+          <td>
+            <a class="row-link" href="{{ url_for('patient_detail', patient_id=p.patient_id) }}">
+              {{ p.last_name }}, {{ p.first_name }}
+            </a>
+          </td>
+          <td>{{ p.date_of_birth.strftime('%d %b %Y') }}</td>
+          <td>{{ p.created_at.strftime('%d %b %Y') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty-state">
+      No patients yet. <a href="{{ url_for('add_patient') }}">Add the first patient</a> to get started.
+    </div>
+  {% endif %}
+{% endblock %}
