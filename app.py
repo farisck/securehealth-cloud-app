@@ -65,6 +65,7 @@ def get_db():
                 f"Server=tcp:{SQL_SERVER},1433;"
                 f"Database={SQL_DATABASE};"
                 f"Encrypt=yes;TrustServerCertificate=no;"
+                "Column Encryption Setting=Enabled;"
             )
             g.db = pyodbc.connect(conn_str, attrs_before={1256: token_struct})
         else:
@@ -75,6 +76,7 @@ def get_db():
                 f"Server=tcp:{SQL_SERVER},1433;"
                 f"Database={SQL_DATABASE};"
                 f"Encrypt=yes;TrustServerCertificate=no;"
+                "Column Encryption Setting=Enabled;"
             )
             g.db = pyodbc.connect(local_conn)
 
