@@ -419,6 +419,14 @@ def add_diagnosis(patient_id):
         conn = get_db()
         cursor = conn.cursor()
 
+        cursor.setinputsizes([
+            None,
+            (pyodbc.SQL_WVARCHAR, 26, 0),
+            None,
+            None,
+            None,
+            None,
+        ])
         cursor.execute(
             """INSERT INTO diagnoses (patient_id, diagnosis, diagnosed_date, severity,
                                       status, notes, created_at, updated_at)
@@ -619,6 +627,12 @@ def add_note(patient_id):
         conn = get_db()
         cursor = conn.cursor()
 
+        cursor.setinputsizes([
+            None,
+            None,
+            (pyodbc.SQL_WVARCHAR, 0, 0),
+            None,
+        ])
         cursor.execute(
             """INSERT INTO clinical_notes (patient_id, note_type, content, author,
                                            created_at, updated_at)
