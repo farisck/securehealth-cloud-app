@@ -430,9 +430,8 @@ def add_diagnosis(patient_id):
         ])
         app.logger.info(f"DIAGNOSIS INSERT PARAMS: {repr((patient_id, request.form['diagnosis'], request.form.get('diagnosed_date') or None, request.form.get('severity'), request.form.get('status', 'Active'), request.form.get('notes')))}")
         cursor.execute(
-            """INSERT INTO diagnoses (patient_id, diagnosis, diagnosed_date, severity,
-                                      status, notes, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())""",
+            """INSERT INTO diagnoses (patient_id, diagnosis, diagnosed_date, severity, status, notes)
+               VALUES (?, ?, ?, ?, ?, ?)""",
             (
                 patient_id,
                 request.form["diagnosis"],
