@@ -421,7 +421,7 @@ def add_diagnosis(patient_id):
 
         cursor.setinputsizes([
             None,
-            (pyodbc.SQL_WVARCHAR, 26, 0),
+            (pyodbc.SQL_WVARCHAR, 200, 0),
             None,
             None,
             None,
