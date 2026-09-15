@@ -66,6 +66,7 @@ def get_db():
                 f"Database={SQL_DATABASE};"
                 f"Encrypt=yes;TrustServerCertificate=no;"
                 "Column Encryption Setting=Enabled;"
+                "KeyStoreAuthentication=KeyVaultManagedIdentity;"
             )
             g.db = pyodbc.connect(conn_str, attrs_before={1256: token_struct})
         else:
