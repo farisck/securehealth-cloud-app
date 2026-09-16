@@ -66,7 +66,9 @@ def get_db():
                 f"Database={SQL_DATABASE};"
                 f"Encrypt=yes;TrustServerCertificate=no;"
                 "Column Encryption Setting=Enabled;"
-                "KeyStoreAuthentication=KeyVaultManagedIdentity;"
+                "KeyStoreAuthentication=KeyVaultClientSecret;"
+                f"KeyStorePrincipalId={os.environ['KV_SP_CLIENT_ID']};"
+                f"KeyStoreSecret={os.environ['KV_SP_CLIENT_SECRET']};"
             )
             g.db = pyodbc.connect(conn_str, attrs_before={1256: token_struct})
         else:
@@ -78,6 +80,9 @@ def get_db():
                 f"Database={SQL_DATABASE};"
                 f"Encrypt=yes;TrustServerCertificate=no;"
                 "Column Encryption Setting=Enabled;"
+                "KeyStoreAuthentication=KeyVaultClientSecret;"
+                f"KeyStorePrincipalId={os.environ['KV_SP_CLIENT_ID']};"
+                f"KeyStoreSecret={os.environ['KV_SP_CLIENT_SECRET']};"
             )
             g.db = pyodbc.connect(local_conn)
 
