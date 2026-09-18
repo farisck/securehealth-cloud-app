@@ -446,6 +446,7 @@ def add_diagnosis(patient_id):
             ),
         )
         conn.commit()
+        app.logger.info(f"Diagnosis insert attempted for patient_id={patient_id}")
 
         cursor.execute("SELECT @@IDENTITY")
         new_id = int(cursor.fetchone()[0])
