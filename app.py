@@ -532,9 +532,9 @@ def add_medication(patient_id):
 
         cursor.execute(
             """INSERT INTO medications (patient_id, medication_name, dosage, frequency,
-                                        prescriber, start_date, end_date, notes,
+                                        prescriber, start_date, end_date,
                                         created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())""",
             (
                 patient_id,
                 request.form["medication_name"],
@@ -543,7 +543,6 @@ def add_medication(patient_id):
                 request.form.get("prescriber"),
                 request.form.get("start_date") or None,
                 request.form.get("end_date") or None,
-                request.form.get("notes"),
             ),
         )
         conn.commit()
@@ -578,7 +577,7 @@ def edit_medication(medication_id):
         cursor.execute(
             """UPDATE medications
                SET medication_name=?, dosage=?, frequency=?, prescriber=?,
-                   start_date=?, end_date=?, notes=?, updated_at=GETDATE()
+                   start_date=?, end_date=?, updated_at=GETDATE()
                WHERE id=?""",
             (
                 request.form["medication_name"],
@@ -587,7 +586,6 @@ def edit_medication(medication_id):
                 request.form.get("prescriber"),
                 request.form.get("start_date") or None,
                 request.form.get("end_date") or None,
-                request.form.get("notes"),
                 medication_id,
             ),
         )
