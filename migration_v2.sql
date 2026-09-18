@@ -1,3 +1,7 @@
+-- NOTE: This migration has already been applied to sqldb-patientrecords.
+-- schema.sql now reflects the resulting schema and is the source of truth
+-- for creating a fresh database. Do not re-run this file.
+
 -- SecureHealth Cloud — Migration v2
 -- Run this on the JUMPBOX against the EXISTING database.
 --
