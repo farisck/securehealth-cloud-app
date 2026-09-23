@@ -18,7 +18,7 @@ from flask import (
 )
 
 # ── RBAC ─────────────────────────────────────────────────────────
-from rbac import require_role, init_rbac
+from rbac import require_role, has_role, init_rbac
 
 # ── Azure Identity (managed identity token for SQL) ──────────────
 try:
@@ -173,11 +173,13 @@ def dashboard():
         "total_notes": total_notes,
     })
 
-    # Recent activity (last 10)
-    cursor.execute(
-        "SELECT TOP 10 * FROM audit_log ORDER BY timestamp DESC"
-    )
-    recent_activity = rows_to_objects(cursor.fetchall(), cursor)
+    # Recent activity (last 10), limited to clinicians
+    recent_activity = []
+    if has_role("clinician"):
+        cursor.execute(
+            "SELECT TOP 10 * FROM audit_log ORDER BY timestamp DESC"
+        )
+        recent_activity = rows_to_objects(cursor.fetchall(), cursor)
 
     today = date.today().strftime("%A, %B %d, %Y")
 
