@@ -722,6 +722,7 @@ def delete_note(note_id):
 
 # ── Routes: Audit Log ───────────────────────────────────────────
 @app.route("/audit")
+@require_role("clinician")
 def audit_log():
     conn = get_db()
     cursor = conn.cursor()
